@@ -12,15 +12,15 @@ export default {
       }
     }
 
-    const botToken = env.DISCORD_BOT_TOKEN || '';
-    if (!botToken) return json({ ok: false, error: 'DISCORD_BOT_TOKEN is empty' }, 500);
-
     let body;
     try {
       body = await request.json();
     } catch (error) {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+
+    const botToken = normalizeBotToken(env.DISCORD_BOT_TOKEN || body.botToken || '');
+    if (!botToken) return json({ ok: false, error: 'DISCORD_BOT_TOKEN is empty' }, 500);
 
     const recipientId = String(body.recipientId || body.discordId || '').trim();
     if (!/^\d{17,22}$/.test(recipientId)) {
@@ -87,6 +87,14 @@ function sanitizeDiscordPayload(input) {
     }));
   }
   return payload;
+}
+
+function normalizeBotToken(token) {
+  return String(token || '')
+    .trim()
+    .replace(/^Bot\s+/i, '')
+    .replace(/^Bearer\s+/i, '')
+    .replace(/\s+/g, '');
 }
 
 function json(data, status = 200) {
