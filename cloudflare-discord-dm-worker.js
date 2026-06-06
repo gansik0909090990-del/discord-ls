@@ -4,12 +4,14 @@ export default {
       return json({ ok: false, error: 'Method not allowed' }, 405);
     }
 
-    const expectedSecret = env.WORKER_SECRET || '';
-    if (expectedSecret) {
-      const auth = request.headers.get('authorization') || '';
-      if (auth !== `Bearer ${expectedSecret}`) {
-        return json({ ok: false, error: 'Unauthorized' }, 401);
-      }
+    const expectedSecret = String(env.WORKER_SECRET || '').trim();
+    if (!expectedSecret) {
+      return json({ ok: false, error: 'WORKER_SECRET is not configured' }, 500);
+    }
+
+    const auth = request.headers.get('authorization') || '';
+    if (auth !== `Bearer ${expectedSecret}`) {
+      return json({ ok: false, error: 'Unauthorized' }, 401);
     }
 
     let body;
@@ -19,7 +21,7 @@ export default {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
 
-    const botToken = normalizeBotToken(env.DISCORD_BOT_TOKEN || body.botToken || '');
+    const botToken = normalizeBotToken(env.DISCORD_BOT_TOKEN || '');
     if (!botToken) return json({ ok: false, error: 'DISCORD_BOT_TOKEN is empty' }, 500);
 
     const recipientId = String(body.recipientId || body.discordId || '').trim();
@@ -49,7 +51,12 @@ export default {
       return json({ ok: false, stage: 'create_dm_channel', status: channelResponse.status, details: safeText(channelText) }, channelResponse.status);
     }
 
-    const channel = JSON.parse(channelText);
+    let channel;
+    try {
+      channel = JSON.parse(channelText);
+    } catch (error) {
+      return json({ ok: false, error: 'Invalid Discord channel response' }, 502);
+    }
     if (!channel.id) return json({ ok: false, error: 'Discord DM channel id is empty' }, 502);
 
     const messageResponse = await fetch(`https://discord.com/api/v10/channels/${encodeURIComponent(channel.id)}/messages`, {
