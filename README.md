@@ -4,4 +4,8 @@
 Уведомлять о выдаче выговора/предупреждения
 Уведомлять о провале экзамена в связи с попыткой списать
 Уведомлять о том, что пользователю дан второй шанс на прохождение экзамена.
- Main developer / project owner: TG - darrsqv l DS - gans9170
+Контакты с разработчиками
+- Main developer / project owner: `Gans`
+- Telegram: `darrsqv`
+- Discord: `gans9170`
+- GitHub: `gansik0909090990-del`
